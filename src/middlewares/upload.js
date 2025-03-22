@@ -33,13 +33,37 @@ const storage = multer.diskStorage({
 });
 
 // File filter function
+// File filter function
 const fileFilter = (req, file, cb) => {
-  // Check file types
+  console.log("File upload attempt:");
+  console.log("Original filename:", file.originalname);
+  console.log("Mimetype:", file.mimetype);
+
+  // List of allowed Excel and CSV MIME types
+  const allowedMimeTypes = [
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/msexcel",
+    "application/x-msexcel",
+    "application/x-ms-excel",
+    "application/x-excel",
+    "application/x-dos_ms_excel",
+    "application/xls",
+    "application/x-xls",
+    "text/csv",
+    "application/csv",
+    "text/x-csv",
+    "application/x-csv",
+    "text/comma-separated-values",
+    "text/x-comma-separated-values",
+  ];
+
+  // Check extension
   const filetypes = /xlsx|xls|csv/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
 
-  if (mimetype && extname) {
+  // Either the MIME type is in our allowed list OR the extension is valid
+  if (allowedMimeTypes.includes(file.mimetype) || extname) {
     return cb(null, true);
   } else {
     return cb(

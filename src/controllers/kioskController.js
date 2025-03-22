@@ -4,6 +4,7 @@ const Patient = require("../models/patientModel");
 const { successResponse, errorResponse } = require("../utils/apiResponse");
 const { ApiError } = require("../middlewares/errorHandler");
 const logger = require("../config/logger");
+const { log } = require("winston");
 
 /**
  * @desc    Check if patient has a current-day appointment
@@ -13,16 +14,22 @@ const logger = require("../config/logger");
 const checkAppointment = asyncHandler(async (req, res) => {
   const { encounterId } = req.body;
 
+  logger.info(`Checking appointment for Encounter ID: ${encounterId}`);
+
   if (!encounterId) {
     throw new ApiError("Encounter ID is required", 400);
   }
 
-  // Get today's date range
+  // Get today's date range - THIS NEEDS TO BE DEFINED BEFORE LOGGING IT
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // You were trying to log 'today' before it was initialized
+  logger.info(`Server time: ${new Date()}`);
+  logger.info(`Today date range: ${today} to ${tomorrow}`);
 
   // Find appointment for today with matching encounterId
   const appointment = await Appointment.findOne({
@@ -34,6 +41,16 @@ const checkAppointment = asyncHandler(async (req, res) => {
   });
 
   if (!appointment) {
+    // Try finding without date constraint to debug
+    const anyAppointment = await Appointment.findOne({ encounterId });
+    if (anyAppointment) {
+      logger.info(
+        `Found appointment but outside date range: ${anyAppointment.appointmentDate}`
+      );
+    } else {
+      logger.info(`No appointment found with ID: ${encounterId}`);
+    }
+
     return errorResponse(
       res,
       404,
