@@ -20,14 +20,13 @@ const checkAppointment = asyncHandler(async (req, res) => {
     throw new ApiError("Encounter ID is required", 400);
   }
 
-  // Get today's date range - THIS NEEDS TO BE DEFINED BEFORE LOGGING IT
+  // Get today's date range
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  // You were trying to log 'today' before it was initialized
   logger.info(`Server time: ${new Date()}`);
   logger.info(`Today date range: ${today} to ${tomorrow}`);
 
@@ -58,18 +57,13 @@ const checkAppointment = asyncHandler(async (req, res) => {
     );
   }
 
-  // Return basic appointment info for KIOSK
-  return successResponse(res, 200, "Appointment found", {
-    encounterId: appointment.encounterId,
-    patientName: appointment.patientName || appointment.fullName,
-    appointmentTime: appointment.appointmentStartTime,
-    provider: appointment.appointmentProviderName,
-    facility: appointment.appointmentFacilityName,
-    visitType: appointment.visitType,
-    hasCheckedIn: !!appointment.kioskCheckIn?.checkedInAt,
-  });
-});
+  // Instead of returning only basic info, return the full appointment object
+  // Add the hasCheckedIn property which is derived
+  const appointmentData = appointment.toObject();
+  appointmentData.hasCheckedIn = !!appointment.kioskCheckIn?.checkedInAt;
 
+  return successResponse(res, 200, "Appointment found", appointmentData);
+});
 /**
  * @desc    Submit KIOSK check-in data
  * @route   PATCH /api/kiosk/submit/:encounterId
