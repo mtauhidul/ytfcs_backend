@@ -138,8 +138,12 @@ const appointmentSchema = new mongoose.Schema(
       medications: [String],
       medicalHistory: [String],
       surgicalHistory: [String],
-      familyHistory: [String],
-      socialHistory: [String],
+      familyHistory: {
+        diabetes: String,
+      },
+      socialHistory: {
+        smoke: String,
+      },
       shoeSize: String,
     },
 
